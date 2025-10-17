@@ -1,0 +1,17 @@
+RewriteEngine On
+
+# Only allow CORS on static files (public/images)
+<IfModule mod_headers.c>
+  <FilesMatch "\.(jpg|jpeg|png|gif|svg|webp|ico)$">
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, OPTIONS"
+    Header set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  </FilesMatch>
+</IfModule>
+
+
+# Proxy rules
+RewriteRule ^$ http://127.0.0.1:3042/ [P,L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ http://127.0.0.1:3042/$1 [P,L]

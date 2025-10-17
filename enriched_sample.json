@@ -1,0 +1,111 @@
+{
+  "results": [
+    {
+      "timestamp": "2025-10-04T11:19:10.235Z",
+      "description": "PBB00015421786",
+      "transaction_type": "DEBIT",
+      "transaction_category": "TRANSFER",
+      "transaction_classification": [],
+      "amount": -9.84,
+      "currency": "GBP",
+      "transaction_id": "6e10e6b98b5597dde6dde0bc4d8b110f",
+      "provider_transaction_id": "7bc7321d-384f-4be0-b2d7-b84056214074",
+      "normalised_provider_transaction_id": "txn-f25de43aee7637165",
+      "meta": {
+        "provider_merchant_name": "Capital One",
+        "provider_category": "FASTER_PAYMENTS_OUT",
+        "transaction_type": "Debit",
+        "provider_id": "7bc7321d-384f-4be0-b2d7-b84056214074",
+        "counter_party_preferred_name": "Account"
+      },
+      "generalCategory": "Banking",
+      "subCategory": "Transfers",
+      "domainDescription": "This transaction represents a debit transfer from a Capital One account, likely for a payment or fund transfer."
+    },
+    {
+      "timestamp": "2025-10-04T11:17:50.355Z",
+      "description": "Transfer from Easy Saver",
+      "transaction_type": "CREDIT",
+      "transaction_category": "OTHER",
+      "transaction_classification": [],
+      "amount": 9.5,
+      "currency": "GBP",
+      "transaction_id": "fc8f820b22463c820842e0c477a0a1aa",
+      "provider_transaction_id": "7bc5e146-529a-4d6a-b3df-dcbbce7e0546",
+      "normalised_provider_transaction_id": "txn-40751090e90e9e58c",
+      "meta": {
+        "provider_merchant_name": "Virendra Vyas",
+        "provider_category": "ON_US_PAY_ME",
+        "transaction_type": "Credit",
+        "provider_id": "7bc5e146-529a-4d6a-b3df-dcbbce7e0546"
+      },
+      "generalCategory": "Banking",
+      "subCategory": "Transfers",
+      "domainDescription": "This transaction indicates a credit transfer from an Easy Saver account, possibly from a personal account holder."
+    },
+    {
+      "timestamp": "2025-10-04T04:31:45Z",
+      "description": "STAGECOACH SERVICES",
+      "transaction_type": "DEBIT",
+      "transaction_category": "PURCHASE",
+      "transaction_classification": [],
+      "amount": -3,
+      "currency": "GBP",
+      "transaction_id": "89bfc307641801d74c62513d5e553cf4",
+      "provider_transaction_id": "7a2fcf46-19ea-4306-a2b5-0b93ad04c661",
+      "normalised_provider_transaction_id": "txn-3054ecdc659e1f1d2",
+      "meta": {
+        "provider_merchant_name": "Stagecoach",
+        "provider_category": "MASTER_CARD",
+        "transaction_type": "Debit",
+        "provider_id": "7a2fcf46-19ea-4306-a2b5-0b93ad04c661"
+      },
+      "generalCategory": "Transportation",
+      "subCategory": "Public Transport",
+      "domainDescription": "This transaction is a debit for services provided by Stagecoach, a public transport operator, likely for bus travel."
+    },
+    {
+      "timestamp": "2025-10-03T18:06:15.394Z",
+      "description": "Transfer from Easy Saver",
+      "transaction_type": "CREDIT",
+      "transaction_category": "OTHER",
+      "transaction_classification": [],
+      "amount": 0.5,
+      "currency": "GBP",
+      "transaction_id": "12d41437b580080d30d0e5143a8fcb91",
+      "provider_transaction_id": "77beb307-aba5-4a7b-b0ae-393c1bd8cbed",
+      "normalised_provider_transaction_id": "txn-d8047044fbfe2f68e",
+      "meta": {
+        "provider_merchant_name": "Virendra Vyas",
+        "provider_category": "ON_US_PAY_ME",
+        "transaction_type": "Credit",
+        "provider_id": "77beb307-aba5-4a7b-b0ae-393c1bd8cbed"
+      },
+      "generalCategory": "Banking",
+      "subCategory": "Transfers",
+      "domainDescription": "This transaction reflects a credit from an Easy Saver account, indicating a transfer from a personal account."
+    },
+    {
+      "timestamp": "2025-10-03T18:05:43.523Z",
+      "description": "Transfer from Easy Saver",
+      "transaction_type": "CREDIT",
+      "transaction_category": "OTHER",
+      "transaction_classification": [],
+      "amount": 0.49,
+      "currency": "GBP",
+      "transaction_id": "86794865f543da43cc67c798d6c7893f",
+      "provider_transaction_id": "77bdf7e6-a1bd-4f2a-9b9f-83274e1356ee",
+      "normalised_provider_transaction_id": "txn-fd227581135d7217a",
+      "meta": {
+        "provider_merchant_name": "Virendra Vyas",
+        "provider_category": "ON_US_PAY_ME",
+        "transaction_type": "Credit",
+        "provider_id": "77bdf7e6-a1bd-4f2a-9b9f-83274e1356ee"
+      },
+      "generalCategory": "Banking",
+      "subCategory": "Transfers",
+      "domainDescription": "This transaction shows a credit from an Easy Saver account, likely a personal transfer from an individual."
+    }
+  ],
+  "status": "Succeeded"
+}

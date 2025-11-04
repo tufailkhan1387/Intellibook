@@ -26,6 +26,7 @@
     "nodemon": "^2.0.22",
     "openai": "^6.3.0",
     "sequelize": "^6.17.0",
-    "sequelize-cli": "^6.4.1"
+    "sequelize-cli": "^6.4.1",
+    "xlsx": "^0.18.5"
   }
 }

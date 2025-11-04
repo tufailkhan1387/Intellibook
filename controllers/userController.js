@@ -2,6 +2,7 @@ require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
 const OpenAI = require("openai");
+const CategoryManager = require("../helpers/CategoryManager");
 
 
 
@@ -26,23 +27,23 @@ if (typeof Headers === 'undefined') {
           }
         }
       }
-      
+
       append(name, value) {
         this.headers[name.toLowerCase()] = value;
       }
-      
+
       set(name, value) {
         this.headers[name.toLowerCase()] = value;
       }
-      
+
       get(name) {
         return this.headers[name.toLowerCase()];
       }
-      
+
       has(name) {
         return name.toLowerCase() in this.headers;
       }
-      
+
       delete(name) {
         delete this.headers[name.toLowerCase()];
       }
@@ -76,22 +77,22 @@ if (typeof FormData === 'undefined') {
       global.FormData = function FormData() {
         this._data = [];
       };
-      
-      global.FormData.prototype.append = function(key, value) {
+
+      global.FormData.prototype.append = function (key, value) {
         this._data.push([key, value]);
       };
-      
-      global.FormData.prototype.entries = function() {
+
+      global.FormData.prototype.entries = function () {
         return this._data[Symbol.iterator]();
       };
-      
-      global.FormData.prototype.toString = function() {
+
+      global.FormData.prototype.toString = function () {
         return '[object FormData]';
       };
-      
+
       // Set the constructor property properly
       global.FormData.prototype.constructor = global.FormData;
-      
+
       // Make sure FormData has a proper name
       Object.defineProperty(global.FormData, 'name', { value: 'FormData' });
     }
@@ -119,6 +120,9 @@ const client = new OpenAI({
   // Only pass fetch if it's available and valid
   ...(fetchImpl ? { fetch: fetchImpl } : {})
 });
+
+// Initialize Category Manager
+const categoryManager = new CategoryManager();
 
 // ---- YOUR EXACT SYSTEM PROMPT ----
 const system_prompt = `
@@ -189,13 +193,13 @@ You must:
 async function categorizeData(req, res) {
   try {
     console.log("Starting categorizeData function...");
-    
+
     // Log environment information for debugging
     console.log("OPENAI_API_KEY present:", !!process.env.OPENAI_API_KEY);
     if (process.env.OPENAI_API_KEY) {
       console.log("API Key length:", process.env.OPENAI_API_KEY.length);
     }
-    
+
     // Ensure OpenAI client is initialized
     if (!client) {
       console.log("❌ OpenAI client not initialized");
@@ -205,11 +209,11 @@ async function categorizeData(req, res) {
         error: "OpenAI client not initialized"
       });
     }
-    
+
     // Fix the file path - it should be in the same directory, not the parent
     let filePath = path.join(__dirname, "../response.json");
     console.log("Reading file from:", filePath);
-    
+
     // Check if file exists
     if (!fs.existsSync(filePath)) {
       console.log("❌ response.json file not found at expected path");
@@ -228,16 +232,16 @@ async function categorizeData(req, res) {
         });
       }
     }
-    
+
     const fileContent = fs.readFileSync(filePath, "utf8");
     console.log("File read successfully, size:", fileContent.length);
-    
+
     const original = JSON.parse(fileContent);
     console.log("JSON parsed successfully");
 
     const transactions = Array.isArray(original.results) ? original.results : [];
     console.log("Number of transactions:", transactions.length);
-    
+
     if (transactions.length === 0) {
       console.log("No transactions found, returning empty results");
       return res.status(200).json({
@@ -252,13 +256,13 @@ async function categorizeData(req, res) {
     console.log("Finished processing transactions. Results count:", enrichedResults.length);
 
     // Check how many were actually categorized
-    const categorizedCount = enrichedResults.filter(txn => 
-      txn.generalCategory && 
-      txn.generalCategory !== "General" && 
-      txn.subCategory && 
+    const categorizedCount = enrichedResults.filter(txn =>
+      txn.generalCategory &&
+      txn.generalCategory !== "General" &&
+      txn.subCategory &&
       txn.subCategory !== "General → Miscellaneous"
     ).length;
-    
+
     console.log("Successfully categorized transactions:", categorizedCount);
     console.log("Default categorized transactions:", enrichedResults.length - categorizedCount);
 
@@ -289,15 +293,15 @@ async function processTransactionsInParallel(transactions, client) {
   // Process up to 10 transactions in parallel to balance speed and resource usage
   const CONCURRENT_LIMIT = 80;
   const results = [];
-  
+
   for (let i = 0; i < transactions.length; i += CONCURRENT_LIMIT) {
     const batch = transactions.slice(i, i + CONCURRENT_LIMIT);
-    console.log(`Processing batch ${Math.floor(i/CONCURRENT_LIMIT) + 1} with ${batch.length} transactions`);
+    console.log(`Processing batch ${Math.floor(i / CONCURRENT_LIMIT) + 1} with ${batch.length} transactions`);
     const promises = batch.map(transaction => processSingleTransaction(transaction, client));
-    
+
     try {
       const batchResults = await Promise.all(promises);
-      console.log(`Batch ${Math.floor(i/CONCURRENT_LIMIT) + 1} completed with ${batchResults.length} results`);
+      console.log(`Batch ${Math.floor(i / CONCURRENT_LIMIT) + 1} completed with ${batchResults.length} results`);
       results.push(...batchResults);
     } catch (error) {
       console.error(`❌ Error processing batch:`, error);
@@ -312,13 +316,16 @@ async function processTransactionsInParallel(transactions, client) {
       });
     }
   }
- console.log("All batches processed. Total results:", results.length);
- return results;
+  console.log("All batches processed. Total results:", results.length);
+  return results;
 }
 
 // ---- SINGLE TRANSACTION PROCESSING ----
 async function processSingleTransaction(transaction, client) {
   try {
+    // Get Excel-based categorization first
+    const excelData = categoryManager.enhanceCategorization(transaction);
+    
     // Create a minimal prompt with only essential transaction data
     const transactionData = {
       id: transaction.transaction_id,
@@ -329,11 +336,22 @@ async function processSingleTransaction(transaction, client) {
       category: transaction.transaction_category
     };
 
+    // Build enhanced prompt using Excel categories
+    const availableCategories = categoryManager.getAllTrueLayerCategories();
+    const excelSubcategories = excelData.availableSubcategories;
+    
     const userPrompt = `
 Categorize this bank transaction with these fields:
 - generalCategory (one of: Income, Shopping, Entertainment, Food & Dining, Transportation, Utilities, Health, Savings, Investments, Personal Care, Travel, Business, Education, Gifts & Donations, Miscellaneous)
 - subCategory (a specific category under the general category)
 - domainDescription (1-2 sentences about the transaction)
+
+IMPORTANT: Use the Excel reference data to guide your categorization:
+- TrueLayer Category: ${transaction.transaction_category}
+- Available Excel Categories: ${availableCategories.join(', ')}
+- Suggested Excel Subcategories: ${excelSubcategories.join(', ')}
+- Excel Allowable Status: ${excelData.allowableStatus}
+- Excel Prompt: ${excelData.prompt}
 
 Return ONLY this JSON format:
 {
@@ -348,11 +366,11 @@ ${JSON.stringify(transactionData, null, 2)}
 `;
 
     const resp = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
-        { 
-          role: "system", 
-          content: "You are a financial transaction categorization expert. Respond with valid JSON only." 
+        {
+          role: "system",
+          content: "You are a financial transaction categorization expert. Use the Excel reference data to guide your categorization decisions. Respond with valid JSON only."
         },
         { role: "user", content: userPrompt }
       ],
@@ -363,25 +381,41 @@ ${JSON.stringify(transactionData, null, 2)}
 
     const text = resp.choices[0]?.message?.content || "";
     if (!text) throw new Error("Empty response from OpenAI");
-    
+
     // Parse the JSON response
     const categorization = JSON.parse(text);
-    
-    // Merge the categorization with the original transaction
+
+    // Merge the categorization with the original transaction and Excel data
     return {
       ...transaction,
-      generalCategory: categorization.generalCategory || "General",
-      subCategory: categorization.subCategory || "General → Miscellaneous",
-      domainDescription: categorization.domainDescription || "Transaction categorized."
+      generalCategory: categorization.generalCategory || excelData.excelCategory || "General",
+      subCategory: categorization.subCategory || excelData.excelSubcategory || "General → Miscellaneous",
+      domainDescription: categorization.domainDescription || "Transaction categorized.",
+      // Add Excel-specific fields
+      excelCategory: excelData.excelCategory,
+      excelSubcategory: excelData.excelSubcategory,
+      allowableStatus: excelData.allowableStatus,
+      excelPrompt: excelData.prompt,
+      backgroundAction: excelData.backgroundAction
     };
   } catch (error) {
     console.error(`Error processing transaction ${transaction.transaction_id}:`, error.message);
-    // Return transaction with default categorization on error
+    
+    // Get Excel data even on error for fallback
+    const excelData = categoryManager.enhanceCategorization(transaction);
+    
+    // Return transaction with Excel-based categorization on error
     return {
       ...transaction,
-      generalCategory: "General",
-      subCategory: "General → Miscellaneous",
-      domainDescription: "Unable to categorize transaction."
+      generalCategory: excelData.excelCategory || "General",
+      subCategory: excelData.excelSubcategory || "General → Miscellaneous",
+      domainDescription: "Unable to categorize transaction.",
+      // Add Excel-specific fields
+      excelCategory: excelData.excelCategory,
+      excelSubcategory: excelData.excelSubcategory,
+      allowableStatus: excelData.allowableStatus,
+      excelPrompt: excelData.prompt,
+      backgroundAction: excelData.backgroundAction
     };
   }
 }

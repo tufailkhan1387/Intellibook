@@ -36,7 +36,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Initializing Server along with creating all the tables that exist in the models folder
 db.sequelize.sync().then(() => {
-  app.listen(process.env.PORT, () => {
+  app.listen(8000, () => {
     console.log(`Starting the server at port ${process.env.PORT} ...`);
   });
 });
